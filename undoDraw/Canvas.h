@@ -1,0 +1,42 @@
+//
+//  Canvas.h
+//  undoDraw
+//
+//  Created by Rob Mayoff on 2/6/13.
+//  Copyright (c) 2013 Rob Mayoff. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@protocol CanvasObserver;
+
+@interface Canvas : NSObject
+
+// The size of my drawable area, in drawing units.  This is multiplied by my scale to determine my pixel dimensions.  When you set this, I send myself `reset`.
+@property (nonatomic) CGSize size;
+
+// I multiply this by my size to compute my pixel dimensions.  When you set this, I send myself `reset`.
+@property (nonatomic) CGFloat scale;
+
+// I throw away my existing contents and undo/redo stack.  I reset my color to black.  I reset my current position to `CGPointZero`.
+- (void)reset;
+
+// The color I will paint with when you send me drawing messages.
+@property (nonatomic, strong) UIColor *color;
+
+// I move my pen to `point` without drawing a line from the prior pen point.
+- (void)moveTo:(CGPoint)point;
+
+// I move my pen to `point`, stroking a line from the prior pen point using my current `color`.
+- (void)lineTo:(CGPoint)point;
+
+- (void)addObserver:(id<CanvasObserver>)observer;
+- (void)removeObserver:(id<CanvasObserver>)observer;
+
+@end
+
+@protocol CanvasObserver <NSObject>
+
+- (void)canvas:(Canvas *)canvas didChangeToImage:(CGImageRef)image;
+
+@end
