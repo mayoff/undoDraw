@@ -1,5 +1,5 @@
 //
-//  ViewController.h
+//  UIColor+contrastingColor.h
 //  undoDraw
 //
 //  Created by Rob Mayoff on 2/6/13.
@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface UIColor (contrastingColor)
+
+- (UIColor *)contrastingColor;
 
 @end

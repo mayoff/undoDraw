@@ -20,6 +20,7 @@
 		31AF8C4616C22F2F008D1641 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31AF8C4416C22F2F008D1641 /* ViewController.xib */; };
 		31AF8C5316C234FA008D1641 /* Canvas.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5216C234FA008D1641 /* Canvas.m */; };
 		31AF8C5616C236C3008D1641 /* DqdObserverSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5516C236C3008D1641 /* DqdObserverSet.m */; };
+		31AF8C5916C23F22008D1641 /* UIColor+contrastingColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5816C23F22008D1641 /* UIColor+contrastingColor.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +45,8 @@
 		31AF8C5216C234FA008D1641 /* Canvas.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Canvas.m; sourceTree = "<group>"; };
 		31AF8C5416C236C3008D1641 /* DqdObserverSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DqdObserverSet.h; sourceTree = "<group>"; };
 		31AF8C5516C236C3008D1641 /* DqdObserverSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DqdObserverSet.m; sourceTree = "<group>"; };
+		31AF8C5716C23F22008D1641 /* UIColor+contrastingColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+contrastingColor.h"; sourceTree = "<group>"; };
+		31AF8C5816C23F22008D1641 /* UIColor+contrastingColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+contrastingColor.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +104,8 @@
 				31AF8C5216C234FA008D1641 /* Canvas.m */,
 				31AF8C5416C236C3008D1641 /* DqdObserverSet.h */,
 				31AF8C5516C236C3008D1641 /* DqdObserverSet.m */,
+				31AF8C5716C23F22008D1641 /* UIColor+contrastingColor.h */,
+				31AF8C5816C23F22008D1641 /* UIColor+contrastingColor.m */,
 			);
 			path = undoDraw;
 			sourceTree = "<group>";
@@ -190,6 +195,7 @@
 				31AF8C4316C22F2F008D1641 /* ViewController.m in Sources */,
 				31AF8C5316C234FA008D1641 /* Canvas.m in Sources */,
 				31AF8C5616C236C3008D1641 /* DqdObserverSet.m in Sources */,
+				31AF8C5916C23F22008D1641 /* UIColor+contrastingColor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
