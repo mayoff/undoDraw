@@ -30,6 +30,9 @@
 // I move my pen to `point`, stroking a line from the prior pen point using my current `color`.
 - (void)lineTo:(CGPoint)point;
 
+// I return a CGImage of my current contents.  I cache this so it's cheap to call repeatedly.
+- (CGImageRef)contents;
+
 - (void)addObserver:(id<CanvasObserver>)observer;
 - (void)removeObserver:(id<CanvasObserver>)observer;
 
@@ -37,6 +40,7 @@
 
 @protocol CanvasObserver <NSObject>
 
-- (void)canvas:(Canvas *)canvas didChangeToImage:(CGImageRef)image;
+// I send this when I have modified my contents.
+- (void)canvasDidChangeContents:(Canvas *)canvas;
 
 @end

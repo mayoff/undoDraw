@@ -21,6 +21,7 @@
 		31AF8C5316C234FA008D1641 /* Canvas.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5216C234FA008D1641 /* Canvas.m */; };
 		31AF8C5616C236C3008D1641 /* DqdObserverSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5516C236C3008D1641 /* DqdObserverSet.m */; };
 		31AF8C5916C23F22008D1641 /* UIColor+contrastingColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5816C23F22008D1641 /* UIColor+contrastingColor.m */; };
+		31AF8C5C16C246EA008D1641 /* CanvasView.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C5B16C246EA008D1641 /* CanvasView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +48,8 @@
 		31AF8C5516C236C3008D1641 /* DqdObserverSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DqdObserverSet.m; sourceTree = "<group>"; };
 		31AF8C5716C23F22008D1641 /* UIColor+contrastingColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+contrastingColor.h"; sourceTree = "<group>"; };
 		31AF8C5816C23F22008D1641 /* UIColor+contrastingColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+contrastingColor.m"; sourceTree = "<group>"; };
+		31AF8C5A16C246EA008D1641 /* CanvasView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CanvasView.h; sourceTree = "<group>"; };
+		31AF8C5B16C246EA008D1641 /* CanvasView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CanvasView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,13 +102,15 @@
 				31AF8C4116C22F2F008D1641 /* ViewController.h */,
 				31AF8C4216C22F2F008D1641 /* ViewController.m */,
 				31AF8C4416C22F2F008D1641 /* ViewController.xib */,
-				31AF8C3016C22F2F008D1641 /* Supporting Files */,
+				31AF8C5A16C246EA008D1641 /* CanvasView.h */,
+				31AF8C5B16C246EA008D1641 /* CanvasView.m */,
 				31AF8C5116C234FA008D1641 /* Canvas.h */,
 				31AF8C5216C234FA008D1641 /* Canvas.m */,
 				31AF8C5416C236C3008D1641 /* DqdObserverSet.h */,
 				31AF8C5516C236C3008D1641 /* DqdObserverSet.m */,
 				31AF8C5716C23F22008D1641 /* UIColor+contrastingColor.h */,
 				31AF8C5816C23F22008D1641 /* UIColor+contrastingColor.m */,
+				31AF8C3016C22F2F008D1641 /* Supporting Files */,
 			);
 			path = undoDraw;
 			sourceTree = "<group>";
@@ -196,6 +201,7 @@
 				31AF8C5316C234FA008D1641 /* Canvas.m in Sources */,
 				31AF8C5616C236C3008D1641 /* DqdObserverSet.m in Sources */,
 				31AF8C5916C23F22008D1641 /* UIColor+contrastingColor.m in Sources */,
+				31AF8C5C16C246EA008D1641 /* CanvasView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

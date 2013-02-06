@@ -8,12 +8,13 @@
 
 #import "ViewController.h"
 #import "Canvas.h"
+#import "CanvasView.h"
 #import "UIColor+contrastingColor.h"
 
 @interface ViewController ()
 
 @property (strong, nonatomic) IBOutletCollection(UIBarButtonItem) NSArray *colorButtonItems;
-@property (nonatomic, strong) IBOutlet UIView *canvasView;
+@property (nonatomic, strong) IBOutlet CanvasView *canvasView;
 
 @property (nonatomic, strong) Canvas *canvas;
 
@@ -28,6 +29,7 @@
     [self initCanvas];
     [self initColorButtonItems];
     [self updateColorButtonItemTitlesWithCurrentCanvasColor];
+    [self initCanvasView];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -74,6 +76,12 @@
     self.canvas.scale = self.canvasView.window.screen.scale;
 }
 
+#pragma mark - Canvas view implementation
+
+- (void)initCanvasView {
+    self.canvasView.canvas = self.canvas;
+}
+
 #pragma mark - Color button implementation
 
 static NSString *const kSelectedColorTitle = @"✔";
@@ -96,6 +104,26 @@ static NSString *const kUnselectedColorTitle = @"   ";
     for (UIBarButtonItem *item in self.colorButtonItems) {
         item.title = [item.tintColor isEqual:color] ? kSelectedColorTitle : kUnselectedColorTitle;
     }
+}
+
+#pragma mark - Touch handling
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = touches.anyObject;
+    [self.canvas moveTo:[touch locationInView:self.canvasView]];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = touches.anyObject;
+    [self.canvas lineTo:[touch locationInView:self.canvasView]];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    NSLog(@"%s %@", __func__, touches);
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+    NSLog(@"%s %@", __func__, touches);
 }
 
 @end
