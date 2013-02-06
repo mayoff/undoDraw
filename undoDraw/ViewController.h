@@ -10,4 +10,8 @@
 
 @interface ViewController : UIViewController
 
+@property (strong, nonatomic) IBOutletCollection(UIBarButtonItem) NSArray *colorButtons;
+
+- (IBAction)save:(id)sender;
+
 @end

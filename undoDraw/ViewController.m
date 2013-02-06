@@ -14,16 +14,30 @@
 
 @implementation ViewController
 
-- (void)viewDidLoad
-{
+#pragma mark - UIViewController overrides
+
+- (void)viewDidLoad {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
+    return ((1 << toInterfaceOrientation) & [self supportedInterfaceOrientations]) != 0;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    switch ([[UIDevice currentDevice] userInterfaceIdiom]) {
+        case UIUserInterfaceIdiomPad:
+            return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
+        default:
+            return UIInterfaceOrientationMaskPortrait;
+    }
+}
+
+#pragma mark - Actions
+
+- (IBAction)save:(id)sender {
+    NSLog(@"%s xxx", __func__);
 }
 
 @end

@@ -17,8 +17,7 @@
 		31AF8C3E16C22F2F008D1641 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 31AF8C3D16C22F2F008D1641 /* Default@2x.png */; };
 		31AF8C4016C22F2F008D1641 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 31AF8C3F16C22F2F008D1641 /* Default-568h@2x.png */; };
 		31AF8C4316C22F2F008D1641 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 31AF8C4216C22F2F008D1641 /* ViewController.m */; };
-		31AF8C4616C22F2F008D1641 /* ViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31AF8C4416C22F2F008D1641 /* ViewController_iPhone.xib */; };
-		31AF8C4916C22F2F008D1641 /* ViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31AF8C4716C22F2F008D1641 /* ViewController_iPad.xib */; };
+		31AF8C4616C22F2F008D1641 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31AF8C4416C22F2F008D1641 /* ViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,8 +36,7 @@
 		31AF8C3F16C22F2F008D1641 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		31AF8C4116C22F2F008D1641 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		31AF8C4216C22F2F008D1641 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		31AF8C4516C22F2F008D1641 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPhone.xib; sourceTree = "<group>"; };
-		31AF8C4816C22F2F008D1641 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPad.xib; sourceTree = "<group>"; };
+		31AF8C4516C22F2F008D1641 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,8 +87,7 @@
 				31AF8C3916C22F2F008D1641 /* AppDelegate.m */,
 				31AF8C4116C22F2F008D1641 /* ViewController.h */,
 				31AF8C4216C22F2F008D1641 /* ViewController.m */,
-				31AF8C4416C22F2F008D1641 /* ViewController_iPhone.xib */,
-				31AF8C4716C22F2F008D1641 /* ViewController_iPad.xib */,
+				31AF8C4416C22F2F008D1641 /* ViewController.xib */,
 				31AF8C3016C22F2F008D1641 /* Supporting Files */,
 			);
 			path = undoDraw;
@@ -165,8 +162,7 @@
 				31AF8C3C16C22F2F008D1641 /* Default.png in Resources */,
 				31AF8C3E16C22F2F008D1641 /* Default@2x.png in Resources */,
 				31AF8C4016C22F2F008D1641 /* Default-568h@2x.png in Resources */,
-				31AF8C4616C22F2F008D1641 /* ViewController_iPhone.xib in Resources */,
-				31AF8C4916C22F2F008D1641 /* ViewController_iPad.xib in Resources */,
+				31AF8C4616C22F2F008D1641 /* ViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,20 +190,12 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		31AF8C4416C22F2F008D1641 /* ViewController_iPhone.xib */ = {
+		31AF8C4416C22F2F008D1641 /* ViewController.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				31AF8C4516C22F2F008D1641 /* en */,
 			);
-			name = ViewController_iPhone.xib;
-			sourceTree = "<group>";
-		};
-		31AF8C4716C22F2F008D1641 /* ViewController_iPad.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				31AF8C4816C22F2F008D1641 /* en */,
-			);
-			name = ViewController_iPad.xib;
+			name = ViewController.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -277,6 +265,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "undoDraw/undoDraw-Prefix.pch";
 				INFOPLIST_FILE = "undoDraw/undoDraw-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -288,6 +277,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "undoDraw/undoDraw-Prefix.pch";
 				INFOPLIST_FILE = "undoDraw/undoDraw-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
