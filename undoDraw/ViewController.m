@@ -40,4 +40,7 @@
     NSLog(@"%s xxx", __func__);
 }
 
+- (IBAction)colorButtonItemWasTapped:(UIBarButtonItem *)sender {
+}
+
 @end
