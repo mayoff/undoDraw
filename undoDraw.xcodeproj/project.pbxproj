@@ -37,6 +37,7 @@
 		31AF8C4116C22F2F008D1641 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		31AF8C4216C22F2F008D1641 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		31AF8C4516C22F2F008D1641 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		31AF8C4F16C2344E008D1641 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +57,7 @@
 		31AF8C1D16C22F2F008D1641 = {
 			isa = PBXGroup;
 			children = (
+				31AF8C4F16C2344E008D1641 /* .gitignore */,
 				31AF8C2F16C22F2F008D1641 /* undoDraw */,
 				31AF8C2816C22F2F008D1641 /* Frameworks */,
 				31AF8C2716C22F2F008D1641 /* Products */,
