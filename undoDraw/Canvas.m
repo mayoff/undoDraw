@@ -15,8 +15,7 @@
 
 @end
 
-// I treat rect as if gc's CTM is flipped, UIKit-style.
-static CGImageRef createImageInFlippedBitmapContextRect(CGContextRef gc, CGRect rect) {
+static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
     uint8_t *data = CGBitmapContextGetData(gc);
     size_t bytesPerRow = CGBitmapContextGetBytesPerRow(gc);
     size_t bytesPerPixel = CGBitmapContextGetBitsPerPixel(gc) / 8;
@@ -113,7 +112,12 @@ static CGImageRef createImageInFlippedBitmapContextRect(CGContextRef gc, CGRect 
     NSValue *wrapper = [NSValue valueWithCGRect:frame];
     CGImageRef contents = (__bridge CGImageRef)(self.cachedTileContents[wrapper]);
     if (!contents) {
-        contents = createImageInFlippedBitmapContextRect(_context, frame);
+        CGFloat const scale = self.scale;
+        frame.origin.x *= scale;
+        frame.origin.y *= scale;
+        frame.size.width *= scale;
+        frame.size.height *= scale;
+        contents = createImageInBitmapContextRect(_context, frame);
         self.cachedTileContents[wrapper] = (__bridge id)(contents);
         CGImageRelease(contents);
     }
@@ -153,9 +157,9 @@ static CGFloat roundUpToMultiple(CGFloat x, CGFloat factor) {
         CGColorSpaceRelease(rgb);
         CGContextSetFillColorWithColor(_context, [UIColor whiteColor].CGColor);
         CGContextFillRect(_context, CGRectInfinite);
-        CGContextScaleCTM(_context, scale, scale);
         CGContextTranslateCTM(_context, 0, (CGFloat)height);
         CGContextScaleCTM(_context, 1.0f, -1.0f);
+        CGContextScaleCTM(_context, scale, scale);
     }
     return _context;
 }
