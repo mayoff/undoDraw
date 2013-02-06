@@ -74,6 +74,7 @@
 - (void)updateCanvasSize {
     self.canvas.size = self.canvasView.bounds.size;
     self.canvas.scale = self.canvasView.window.screen.scale;
+    self.canvas.tileSize = 32.0f;
 }
 
 #pragma mark - Canvas view implementation
@@ -119,7 +120,8 @@ static NSString *const kUnselectedColorTitle = @"   ";
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSLog(@"%s %@", __func__, touches);
+    UITouch *touch = touches.anyObject;
+    [self.canvas lineTo:[touch locationInView:self.canvasView]];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
