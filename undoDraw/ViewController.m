@@ -117,20 +117,24 @@ static NSString *const kUnselectedColorTitle = @"   ";
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     UITouch *touch = touches.anyObject;
-    // Prevent Core Animation from automatically animating the tile updates with a fade.
-    [CATransaction begin]; {
-        [CATransaction setDisableActions:YES];
-        [self.canvas lineTo:[touch locationInView:self.canvasView]];
-    } [CATransaction commit];
+    [self lineTo:[touch locationInView:self.canvasView]];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     UITouch *touch = touches.anyObject;
-    [self.canvas lineTo:[touch locationInView:self.canvasView]];
+    [self lineTo:[touch locationInView:self.canvasView]];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
     NSLog(@"%s %@", __func__, touches);
+}
+
+- (void)lineTo:(CGPoint)point {
+    // Prevent Core Animation from automatically animating the tile updates with a fade.
+    [CATransaction begin]; {
+        [CATransaction setDisableActions:YES];
+        [self.canvas lineTo:point];
+    } [CATransaction commit];
 }
 
 @end
