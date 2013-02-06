@@ -10,7 +10,7 @@
 
 @class Canvas;
 
-@interface CanvasView : UIView
+@interface CanvasControl : UIControl
 
 @property (nonatomic, strong) Canvas *canvas;
 

@@ -6,11 +6,11 @@
 //  Copyright (c) 2013 Rob Mayoff. All rights reserved.
 //
 
-#import "CanvasView.h"
+#import "CanvasControl.h"
 #import "Canvas.h"
 #import <QuartzCore/QuartzCore.h>
 
-@interface CanvasView () <CanvasObserver>
+@interface CanvasControl () <CanvasObserver>
 
 // Each key is an NSValue wrapping a CGRect.  Each value is the corresponding layer.
 @property (nonatomic, strong) NSMutableDictionary *tileLayers;
@@ -20,7 +20,7 @@
 
 @end
 
-@implementation CanvasView
+@implementation CanvasControl
 
 #pragma mark - Public API
 
@@ -59,9 +59,9 @@
     self.backgroundColor = [UIColor whiteColor];
 }
 
-- (void)canvas:(Canvas *)canvas didChangeTileWithFrame:(CGRect)frame {
-    CALayer *const layer = [self tileLayerWithFrame:frame];
-    layer.contents = (__bridge id)([canvas contentsOfTileWithFrame:frame]);
+- (void)canvas:(Canvas *)canvas didChangeTileWithFrameValue:(NSValue *)frameValue {
+    CALayer *const layer = [self tileLayerWithFrameValue:frameValue];
+    layer.contents = (__bridge id)([canvas contentsOfTileWithFrameValue:frameValue]);
 }
 
 #pragma mark - Implementation details
@@ -92,14 +92,13 @@
     [self.tileLayers removeAllObjects];
 }
 
-- (CALayer *)tileLayerWithFrame:(CGRect)frame {
-    NSValue *const wrapper = [NSValue valueWithCGRect:frame];
-    CALayer *layer = self.tileLayers[wrapper];
+- (CALayer *)tileLayerWithFrameValue:(NSValue *)frameValue {
+    CALayer *layer = self.tileLayers[frameValue];
     if (!layer) {
         layer = [CALayer layer];
-        layer.frame = frame;
+        layer.frame = frameValue.CGRectValue;
         [self.layer addSublayer:layer];
-        self.tileLayers[wrapper] = layer;
+        self.tileLayers[frameValue] = layer;
     }
     return layer;
 }

@@ -8,29 +8,65 @@
 
 #import "ViewController.h"
 #import "Canvas.h"
-#import "CanvasView.h"
+#import "CanvasControl.h"
 #import "UIColor+contrastingColor.h"
 #import <QuartzCore/QuartzCore.h>
 
-@interface ViewController ()
+@interface ViewController () <CanvasObserver>
 
 @property (strong, nonatomic) IBOutletCollection(UIBarButtonItem) NSArray *colorButtonItems;
-@property (nonatomic, strong) IBOutlet CanvasView *canvasView;
+@property (nonatomic, strong) IBOutlet CanvasControl *canvasControl;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *undoItem;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *redoItem;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *saveItem;
 
 @property (nonatomic, strong) Canvas *canvas;
 
 @end
 
-@implementation ViewController
+@implementation ViewController {
+    id _undoManagerCheckpointNotificationRegistration;
+}
+
+#pragma mark - Public API
+
+- (void)dealloc {
+    [self.canvas removeObserver:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:_undoManagerCheckpointNotificationRegistration];
+}
+
+#pragma mark - UIResponder overrides
+
+- (BOOL)canBecomeFirstResponder {
+    return YES;
+}
 
 #pragma mark - UIViewController overrides
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [self initUndoManager];
     [self initCanvas];
     [self initColorButtonItems];
     [self updateColorButtonItemTitlesWithCurrentCanvasColor];
-    [self initCanvasView];
+    [self initcanvasControl];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self startObservingUndoCheckpoints];
+    [self validateToolbarItems];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self becomeFirstResponder];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self resignFirstResponder];
+    [self stopObservingUndoCheckpoints];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -63,6 +99,31 @@
     [self updateColorButtonItemTitlesWithCurrentCanvasColor];
 }
 
+#pragma mark - Toolbar item validation
+
+- (void)validateToolbarItems {
+    self.undoItem.enabled = self.undoManager.canUndo;
+    self.redoItem.enabled = self.undoManager.canRedo;
+    self.saveItem.enabled = self.undoManager.canUndo;
+}
+
+#pragma mark - Undo manager implementation
+
+- (void)initUndoManager {
+    // I want one undo action to cover an entire touch from begin to end, rather than each touch movement acting as a separate undoable action.  So I need to disable UIKit's automatic per-event undo grouping.
+    self.undoManager.groupsByEvent = NO;
+}
+
+- (void)startObservingUndoCheckpoints {
+    _undoManagerCheckpointNotificationRegistration = [[NSNotificationCenter defaultCenter] addObserverForName:NSUndoManagerCheckpointNotification object:self.undoManager queue:nil usingBlock:^(NSNotification *note) {
+        [self validateToolbarItems];
+    }];
+}
+
+- (void)stopObservingUndoCheckpoints {
+    [[NSNotificationCenter defaultCenter] removeObserver:_undoManagerCheckpointNotificationRegistration];
+}
+
 #pragma mark - Canvas implementation
 
 - (void)initCanvas {
@@ -70,18 +131,55 @@
 
     // [UIColor blackColor] returns a color in the UIDeviceWhiteColorSpace, but the black tint in the nib is in the UIDeviceRGBColorSpace.  Stupidly, -[UIColor isEqual:] does not recognize these as the same color.  So, to make the comparison in -updateColorButtonItemTitlesWithCurrentCanvasColor work, I carefully initialize the canvas color from a color button item.
     self.canvas.color = [self.colorButtonItems[0] tintColor];
+
+    [self.canvas addObserver:self];
 }
 
 - (void)updateCanvasSize {
-    self.canvas.size = self.canvasView.bounds.size;
-    self.canvas.scale = self.canvasView.window.screen.scale;
+    self.canvas.size = self.canvasControl.bounds.size;
+    self.canvas.scale = self.canvasControl.window.screen.scale;
     self.canvas.tileSize = 64.0f;
+}
+
+- (void)canvasDidResetContents:(Canvas *)canvas {
+    [self.undoManager removeAllActions];
+}
+
+- (void)canvas:(Canvas *)canvas didChangeTileWithFrameValue:(NSValue *)frameValue {
+    // Nothing to do.
 }
 
 #pragma mark - Canvas view implementation
 
-- (void)initCanvasView {
-    self.canvasView.canvas = self.canvas;
+- (void)initcanvasControl {
+    self.canvasControl.canvas = self.canvas;
+}
+
+- (IBAction)touchDownInCanvasControl:(CanvasControl *)sender forEvent:(UIEvent *)event {
+    [self.undoManager beginUndoGrouping];
+    [self.canvas registerUndoWithUndoManager:self.undoManager];
+    UITouch *touch = [event touchesForView:sender].anyObject;
+    [self.canvas moveTo:[touch locationInView:self.canvasControl]];
+}
+
+- (IBAction)touchDragInCanvasControl:(CanvasControl *)sender forEvent:(UIEvent *)event {
+    UITouch *touch = [event touchesForView:sender].anyObject;
+    [self lineTo:[touch locationInView:sender]];
+}
+
+- (IBAction)touchUpInCanvasControl:(CanvasControl *)sender forEvent:(UIEvent *)event {
+    UITouch *touch = [event touchesForView:sender].anyObject;
+    [self lineTo:[touch locationInView:sender]];
+    [self.undoManager endUndoGrouping];
+}
+
+- (IBAction)touchCancelInCanvasControl:(CanvasControl *)sender forEvent:(UIEvent *)event {
+    [self.undoManager endUndoGrouping];
+    [self.undoManager undo];
+
+    // This should remove the redo action created by the undo manager when I just undid the effects of the cancelled touch.
+    [self.undoManager beginUndoGrouping];
+    [self.undoManager endUndoGrouping];
 }
 
 #pragma mark - Color button implementation
@@ -108,26 +206,7 @@ static NSString *const kUnselectedColorTitle = @"   ";
     }
 }
 
-#pragma mark - Touch handling
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    UITouch *touch = touches.anyObject;
-    [self.canvas moveTo:[touch locationInView:self.canvasView]];
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    UITouch *touch = touches.anyObject;
-    [self lineTo:[touch locationInView:self.canvasView]];
-}
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    UITouch *touch = touches.anyObject;
-    [self lineTo:[touch locationInView:self.canvasView]];
-}
-
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSLog(@"%s %@", __func__, touches);
-}
+#pragma mark - Implementation details
 
 - (void)lineTo:(CGPoint)point {
     // Prevent Core Animation from automatically animating the tile updates with a fade.

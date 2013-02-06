@@ -15,6 +15,14 @@
 
 @end
 
+static CGRect scaleRect(CGRect rect, CGFloat scale) {
+    rect.origin.x *= scale;
+    rect.origin.y *= scale;
+    rect.size.width *= scale;
+    rect.size.height *= scale;
+    return rect;
+}
+
 static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
     uint8_t *data = CGBitmapContextGetData(gc);
     size_t bytesPerRow = CGBitmapContextGetBytesPerRow(gc);
@@ -31,6 +39,21 @@ static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
         provider, NULL, NO, kCGRenderingIntentDefault);
     CGDataProviderRelease(provider);
     return image;
+}
+
+static void copyImageToBitmapContextRect(CGImageRef image, CGContextRef gc, CGRect rect) {
+    CGContextSaveGState(gc); {
+        CGContextConcatCTM(gc, CGAffineTransformInvert(CGContextGetCTM(gc)));
+        CGContextDrawImage(gc, rect, image);
+    } CGContextRestoreGState(gc);
+}
+
+static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
+    CGContextSaveGState(gc); {
+        CGContextConcatCTM(gc, CGAffineTransformInvert(CGContextGetCTM(gc)));
+        CGContextSetFillColorWithColor(gc, [UIColor whiteColor].CGColor);
+        CGContextFillRect(gc, rect);
+    } CGContextRestoreGState(gc);
 }
 
 @implementation Canvas {
@@ -108,17 +131,12 @@ static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
     [self didChangeContentsInRect:changedRect];
 }
 
-- (CGImageRef)contentsOfTileWithFrame:(CGRect)frame {
-    NSValue *wrapper = [NSValue valueWithCGRect:frame];
-    CGImageRef contents = (__bridge CGImageRef)(self.cachedTileContents[wrapper]);
+- (CGImageRef)contentsOfTileWithFrameValue:(NSValue *)frameValue {
+    CGImageRef contents = (__bridge CGImageRef)(self.cachedTileContents[frameValue]);
     if (!contents) {
-        CGFloat const scale = self.scale;
-        frame.origin.x *= scale;
-        frame.origin.y *= scale;
-        frame.size.width *= scale;
-        frame.size.height *= scale;
-        contents = createImageInBitmapContextRect(_context, frame);
-        self.cachedTileContents[wrapper] = (__bridge id)(contents);
+        CGRect const scaledFrame = scaleRect(frameValue.CGRectValue, self.scale);
+        contents = createImageInBitmapContextRect(_context, scaledFrame);
+        self.cachedTileContents[frameValue] = (__bridge id)(contents);
         CGImageRelease(contents);
     }
     return contents;
@@ -133,6 +151,16 @@ static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
 
 - (void)removeObserver:(id<CanvasObserver>)observer {
     [_observers removeObserver:observer];
+}
+
+- (void)registerUndoWithUndoManager:(NSUndoManager *)undoManager {
+    __weak NSUndoManager *weakUndoManager = undoManager;
+    NSDictionary *tileContentsDictionary = [self.cachedTileContents copy];
+    [undoManager registerUndoWithTarget:self selector:@selector(undoByPerformingBlock:) object:^(Canvas *self){
+        NSUndoManager *undoManager = weakUndoManager;
+        [self registerUndoWithUndoManager:undoManager];
+        [self restoreContentsWithTileContentsDictionary:tileContentsDictionary];
+    }];
 }
 
 #pragma mark - Implementation details
@@ -173,18 +201,48 @@ static CGFloat roundUpToMultiple(CGFloat x, CGFloat factor) {
 
     for (CGFloat y = yMin; y < yMax; y += tileSize) {
         for (CGFloat x = xMin; x < xMax; x += tileSize) {
-            [self didChangeTileWithFrame:CGRectMake(x, y, tileSize, tileSize)];
+            NSValue *frameValue = [NSValue valueWithCGRect:CGRectMake(x, y, tileSize, tileSize)];
+            [self didChangeTileWithFrameValue:frameValue];
         }
     }
 }
 
-- (void)didChangeTileWithFrame:(CGRect)frame {
-    [self flushCachedContentsOfTileWithFrame:frame];
-    [_observers.proxy canvas:self didChangeTileWithFrame:frame];
+- (void)didChangeTileWithFrameValue:(NSValue *)frameValue {
+    [self flushCachedContentsOfTileWithFrameValue:frameValue];
+    [_observers.proxy canvas:self didChangeTileWithFrameValue:frameValue];
 }
 
-- (void)flushCachedContentsOfTileWithFrame:(CGRect)frame {
-    [self.cachedTileContents removeObjectForKey:[NSValue valueWithCGRect:frame]];
+- (void)flushCachedContentsOfTileWithFrameValue:(NSValue *)frameValue {
+    [self.cachedTileContents removeObjectForKey:frameValue];
+}
+
+- (void)undoByPerformingBlock:(void (^)(Canvas *self))block {
+    block(self);
+}
+
+- (void)restoreContentsWithTileContentsDictionary:(NSDictionary *)dictionary {
+    // There might be tiles in cachedTileContents that are not in dictionary.  Those need to be removed from cachedTileContents to "restore" them.  So I need to iterate over every key in either dictionary.
+    NSMutableSet *keys = [NSMutableSet setWithArray:dictionary.allKeys];
+    [keys addObjectsFromArray:self.cachedTileContents.allKeys];
+    for (NSValue *frameValue in keys) {
+        [self restoreTileWithFrameValue:frameValue contents:(__bridge CGImageRef)(dictionary[frameValue])];
+    }
+}
+
+- (void)restoreTileWithFrameValue:(NSValue *)frameValue contents:(CGImageRef)contents {
+    CGImageRef currentContents = (__bridge CGImageRef)(self.cachedTileContents[frameValue]);
+    if (currentContents == contents)
+        return;
+
+    CGRect const scaledFrame = scaleRect(frameValue.CGRectValue, self.scale);
+    if (contents) {
+        copyImageToBitmapContextRect(contents, _context, scaledFrame);
+        self.cachedTileContents[frameValue] = (__bridge id)(contents);
+    } else {
+        fillBitmapContextRectWithWhite(_context, scaledFrame);
+        [self.cachedTileContents removeObjectForKey:frameValue];
+    }
+    [_observers.proxy canvas:self didChangeTileWithFrameValue:frameValue];
 }
 
 @end

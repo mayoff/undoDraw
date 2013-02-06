@@ -23,11 +23,14 @@
 // I make my contents available as a two-dimensional array of square tiles.  This is the size of each tile, in pixels.
 @property (nonatomic) CGFloat tileSize;
 
-// I throw away my existing contents and undo/redo stack, and set my contents to solid white.  I reset my pen point to `CGPointZero`.  I don't reset my `color`.
+// I set my existing contents to solid white.  I reset my pen point to `CGPointZero`.  I don't reset my `color`.
 - (void)reset;
 
 // The color I will paint with when you send me drawing messages.
 @property (nonatomic, strong) UIColor *color;
+
+// Register an undo action that will restore my current contents.
+- (void)registerUndoWithUndoManager:(NSUndoManager *)undoManager;
 
 // I move my pen to `point` without drawing a line from the prior pen point.
 - (void)moveTo:(CGPoint)point;
@@ -35,8 +38,8 @@
 // I move my pen to `point`, stroking a line from the prior pen point using my current `color`.
 - (void)lineTo:(CGPoint)point;
 
-// I return the contents of the tile with the give frame.  I cache the returned image, so calling this repeatedly with the same frame is cheap (if the contents of the tile hasn't changed between calls).
-- (CGImageRef)contentsOfTileWithFrame:(CGRect)frame;
+// I return the contents of the tile with the given frame (wrapped in an `NSValue`).  I cache the returned image, so calling this repeatedly with the same frame is cheap (if the contents of the tile hasn't changed between calls).  If I return NULL, you should treat it as a solid white image.
+- (CGImageRef)contentsOfTileWithFrameValue:(NSValue *)frameValue;
 
 - (void)addObserver:(id<CanvasObserver>)observer;
 - (void)removeObserver:(id<CanvasObserver>)observer;
@@ -48,7 +51,7 @@
 // I send this when I reset my contents.
 - (void)canvasDidResetContents:(Canvas *)canvas;
 
-// I send this when I have modified the contents of a tile.  I provide the frame of the tile in my coordinate system.
-- (void)canvas:(Canvas *)canvas didChangeTileWithFrame:(CGRect)frame;
+// I send this when I have modified the contents of a tile.  I provide the frame of the tile in my coordinate system, wrapped in an `NSValue`.
+- (void)canvas:(Canvas *)canvas didChangeTileWithFrameValue:(NSValue *)frameValue;
 
 @end
