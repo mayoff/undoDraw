@@ -10,6 +10,7 @@
 #import "Canvas.h"
 #import "CanvasView.h"
 #import "UIColor+contrastingColor.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface ViewController ()
 
@@ -74,7 +75,7 @@
 - (void)updateCanvasSize {
     self.canvas.size = self.canvasView.bounds.size;
     self.canvas.scale = self.canvasView.window.screen.scale;
-    self.canvas.tileSize = 32.0f;
+    self.canvas.tileSize = 64.0f;
 }
 
 #pragma mark - Canvas view implementation
@@ -116,7 +117,11 @@ static NSString *const kUnselectedColorTitle = @"   ";
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     UITouch *touch = touches.anyObject;
-    [self.canvas lineTo:[touch locationInView:self.canvasView]];
+    // Prevent Core Animation from automatically animating the tile updates with a fade.
+    [CATransaction begin]; {
+        [CATransaction setDisableActions:YES];
+        [self.canvas lineTo:[touch locationInView:self.canvasView]];
+    } [CATransaction commit];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
