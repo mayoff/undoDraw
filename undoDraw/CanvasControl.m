@@ -96,6 +96,7 @@
     CALayer *layer = self.tileLayers[frameValue];
     if (!layer) {
         layer = [CALayer layer];
+        layer.backgroundColor = self.layer.backgroundColor;
         layer.frame = frameValue.CGRectValue;
         [self.layer addSublayer:layer];
         self.tileLayers[frameValue] = layer;
