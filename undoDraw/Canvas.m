@@ -105,22 +105,28 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
 @synthesize size = _size;
 
 - (void)setSize:(CGSize)size {
-    _size = size;
-    [self reset];
+    if (!CGSizeEqualToSize(size, _size)) {
+        _size = size;
+        [self reset];
+    }
 }
 
 @synthesize scale = _scale;
 
 - (void)setScale:(CGFloat)scale {
-    _scale = scale;
-    [self reset];
+    if (scale != _scale) {
+        _scale = scale;
+        [self reset];
+    }
 }
 
 @synthesize tileSize = _tileSize;
 
 - (void)setTileSize:(CGFloat)tileSize {
-    _tileSize = tileSize;
-    [self reset];
+    if (tileSize != _tileSize) {
+        _tileSize = tileSize;
+        [self reset];
+    }
 }
 
 - (void)reset {
@@ -170,6 +176,13 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
         CGImageRelease(contents);
     }
     return contents;
+}
+
+- (UIImage *)contentsForExport {
+    CGImageRef cgImage = CGBitmapContextCreateImage([self context]);
+    UIImage *image = [UIImage imageWithCGImage:cgImage scale:self.scale orientation:UIImageOrientationUp];
+    CGImageRelease(cgImage);
+    return image;
 }
 
 - (void)addObserver:(id<CanvasObserver>)observer {

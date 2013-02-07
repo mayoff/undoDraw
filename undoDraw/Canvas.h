@@ -14,13 +14,13 @@
 
 @interface Canvas : NSObject
 
-// The size of my drawable area, in drawing units.  This is multiplied by my scale to determine my pixel dimensions.  When you set this, I send myself `reset`.
+// The size of my drawable area, in drawing units.  This is multiplied by my scale to determine my pixel dimensions.  When you change this, I send myself `reset`.
 @property (nonatomic) CGSize size;
 
-// I multiply this by my size to compute my pixel dimensions.  When you set this, I send myself `reset`.
+// I multiply this by my size to compute my pixel dimensions.  When you change this, I send myself `reset`.
 @property (nonatomic) CGFloat scale;
 
-// I make my contents available as a two-dimensional array of square tiles.  This is the size of each tile, in pixels.
+// I make my contents available as a two-dimensional array of square tiles.  This is the size of each tile, in pixels.  When you change this, I send myself `reset`.
 @property (nonatomic) CGFloat tileSize;
 
 // I set my existing contents to solid white.  I reset my pen point to `CGPointZero`.  I don't reset my `color`.
@@ -40,6 +40,9 @@
 
 // I return the contents of the tile with the given frame (wrapped in an `NSValue`).  I cache the returned image, so calling this repeatedly with the same frame is cheap (if the contents of the tile hasn't changed between calls).  If I return NULL, you should treat it as a solid white image.
 - (CGImageRef)contentsOfTileWithFrameValue:(NSValue *)frameValue;
+
+// I return my entire contents, suitable for export.
+- (UIImage *)contentsForExport;
 
 - (void)addObserver:(id<CanvasObserver>)observer;
 - (void)removeObserver:(id<CanvasObserver>)observer;

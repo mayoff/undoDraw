@@ -22,6 +22,9 @@
 
 @property (nonatomic, strong) Canvas *canvas;
 
+@property (nonatomic, strong) UIImageView *snapshotView; // animated to indicate saving
+@property (nonatomic) BOOL isSaving;
+
 @end
 
 @implementation ViewController {
@@ -90,7 +93,13 @@
 #pragma mark - Actions
 
 - (IBAction)save:(id)sender {
-    NSLog(@"%s xxx", __func__);
+    if (self.isSaving)
+        return;
+    self.isSaving = YES;
+    [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
+    UIImage *snapshot = self.canvas.contentsForExport;
+    [self showSavingStartedAnimationWithSnapshot:snapshot];
+    UIImageWriteToSavedPhotosAlbum(snapshot, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
 }
 
 - (IBAction)colorButtonItemWasTapped:(UIBarButtonItem *)sender {
@@ -105,6 +114,43 @@
     self.undoItem.enabled = self.undoManager.canUndo;
     self.redoItem.enabled = self.undoManager.canRedo;
     self.saveItem.enabled = self.undoManager.canUndo;
+}
+
+#pragma mark - Save implementation
+
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+    self.isSaving = NO;
+    [self showSavingFinishedAnimation];
+    if (error) {
+        NSString *message = [NSString stringWithFormat:NSLocalizedString(@"I couldn't save your drawing.  I received this error: %@", nil), error.localizedDescription];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Saving Failed", nil) message:message delegate:nil cancelButtonTitle:NSLocalizedString(@"Keep Calm and Carry On", nil) otherButtonTitles:nil];
+        [alert show];
+    }
+}
+
+- (void)showSavingStartedAnimationWithSnapshot:(UIImage *)snapshot {
+    UIImageView *view = [[UIImageView alloc] initWithImage:snapshot];
+    self.snapshotView = view;
+    view.center = [self.view convertPoint:self.canvasControl.center fromView:self.canvasControl.superview];
+    [self.view addSubview:view];
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        CGAffineTransform transform = CGAffineTransformIdentity;
+        transform = CGAffineTransformScale(transform, 1.1f, 1.1f);
+        transform = CGAffineTransformRotate(transform, -M_PI / 16.0f);
+        view.transform = transform;
+    } completion:nil];
+}
+
+- (void)showSavingFinishedAnimation {
+    UIView *view = self.snapshotView;
+    self.snapshotView = nil;
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState animations:^{
+        view.transform = CGAffineTransformScale(view.transform, 0.1, 0.1);
+        view.alpha = 0;
+    } completion:^(BOOL finished) {
+        [view removeFromSuperview];
+    }];
 }
 
 #pragma mark - Undo manager implementation
