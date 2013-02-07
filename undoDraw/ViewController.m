@@ -238,7 +238,7 @@ static NSString *const kUnselectedColorTitle = @"   ";
     for (UIBarButtonItem *item in self.colorButtonItems) {
         item.possibleTitles = possibleTitles;
         NSDictionary *tribs = @{
-                 UITextAttributeFont: [UIFont systemFontOfSize:24],
+                 UITextAttributeFont: [UIFont fontWithName:@"ZapfDingbatsITC" size:24],
                  UITextAttributeTextColor: [item.tintColor contrastingColor]
          };
         [item setTitleTextAttributes:tribs forState:UIControlStateNormal];
