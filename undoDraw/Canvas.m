@@ -38,6 +38,8 @@ static void dataProviderReleaseDataWithFree(void *info, void const *data, size_t
 static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
     // We can't just create a CGDataProvider that uses gc's bitmap data directly, because CGImage does not make a private copy of its data when you create it, or even when you draw it to a context!  Even though the Quartz 2D Programming Guide says a CGImage is immutable, I've found that changing the data that you originally passed to its CGDataProvider will change the contents of the image.  So I have to make a copy of the bitmap data here and use that copy to create the data provider.
 
+    rect = CGRectStandardize(CGContextConvertRectToDeviceSpace(gc, rect));
+
     size_t const sourceBytesPerRow = CGBitmapContextGetBytesPerRow(gc);
     size_t const bytesPerPixel = CGBitmapContextGetBitsPerPixel(gc) / 8;
     size_t const offset = (size_t)rect.origin.x * bytesPerPixel + (size_t)rect.origin.y * sourceBytesPerRow;
@@ -170,8 +172,7 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
         // This tile was undone to an empty state.  Return nil instead of creating a solid white tile.
         contents = nil;
     } else if (!contents) {
-        CGRect const scaledFrame = scaleRect(frameValue.CGRectValue, self.scale);
-        contents = createImageInBitmapContextRect(_context, scaledFrame);
+        contents = createImageInBitmapContextRect(_context, frameValue.CGRectValue);
         self.cachedTileContents[frameValue] = (__bridge id)(contents);
         CGImageRelease(contents);
     }
