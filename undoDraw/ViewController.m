@@ -41,7 +41,24 @@
 #pragma mark - UIResponder overrides
 
 - (BOOL)canBecomeFirstResponder {
+    // Necessary for undo support.
     return YES;
+}
+
+- (void)undo:(id)sender {
+    [CATransaction begin]; {
+        // Prevent cross-fade to undone contents.
+        [CATransaction setDisableActions:YES];
+        [self.undoManager undo];
+    } [CATransaction commit];
+}
+
+- (void)redo:(id)sender {
+    [CATransaction begin]; {
+        // Prevent cross-fade to redone contents.
+        [CATransaction setDisableActions:YES];
+        [self.undoManager redo];
+    } [CATransaction commit];
 }
 
 #pragma mark - UIViewController overrides
@@ -52,7 +69,7 @@
     [self initCanvas];
     [self initColorButtonItems];
     [self updateColorButtonItemTitlesWithCurrentCanvasColor];
-    [self initcanvasControl];
+    [self initCanvasControl];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -63,6 +80,8 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+
+    // Necessary for undo support.
     [self becomeFirstResponder];
 }
 
@@ -197,7 +216,7 @@
 
 #pragma mark - Canvas view implementation
 
-- (void)initcanvasControl {
+- (void)initCanvasControl {
     self.canvasControl.canvas = self.canvas;
 }
 
