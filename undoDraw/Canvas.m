@@ -160,7 +160,10 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
 
 - (CGImageRef)contentsOfTileWithFrameValue:(NSValue *)frameValue {
     CGImageRef contents = (__bridge CGImageRef)(self.cachedTileContents[frameValue]);
-    if (!contents) {
+    if (contents == (__bridge CGImageRef)([NSNull null])) {
+        // This tile was undone to an empty state.  Return nil instead of creating a solid white tile.
+        contents = nil;
+    } else if (!contents) {
         CGRect const scaledFrame = scaleRect(frameValue.CGRectValue, self.scale);
         contents = createImageInBitmapContextRect(_context, scaledFrame);
         self.cachedTileContents[frameValue] = (__bridge id)(contents);
@@ -244,22 +247,30 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
     NSMutableSet *keys = [NSMutableSet setWithArray:dictionary.allKeys];
     [keys addObjectsFromArray:self.cachedTileContents.allKeys];
     for (NSValue *frameValue in keys) {
-        [self restoreTileWithFrameValue:frameValue contents:(__bridge CGImageRef)(dictionary[frameValue])];
+        CGImageRef contents = (__bridge CGImageRef)dictionary[frameValue];
+        if (contents == (__bridge CGImageRef)([NSNull null])) {
+            contents = NULL;
+        }
+        [self restoreTileWithFrameValue:frameValue contents:contents];
     }
 }
 
 - (void)restoreTileWithFrameValue:(NSValue *)frameValue contents:(CGImageRef)contents {
     CGImageRef currentContents = (__bridge CGImageRef)(self.cachedTileContents[frameValue]);
+    if (currentContents == (__bridge CGImageRef)([NSNull null]))
+        currentContents = NULL;
+
     if (currentContents == contents)
         return;
 
     if (contents) {
         copyImageToBitmapContextRect(contents, _context, frameValue.CGRectValue);
-        self.cachedTileContents[frameValue] = (__bridge id)(contents);
     } else {
         fillBitmapContextRectWithWhite(_context, frameValue.CGRectValue);
-        [self.cachedTileContents removeObjectForKey:frameValue];
+        // Store NSNull instead of removing the object.  That way, `contentsOfTileWithFrameValue:` can just return `nil` instead of creating a solid white tile image.
+        contents = (__bridge CGImageRef)([NSNull null]);
     }
+    self.cachedTileContents[frameValue] = (__bridge id)(contents);
     [_observers.proxy canvas:self didChangeTileWithFrameValue:frameValue];
 }
 
