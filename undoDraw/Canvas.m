@@ -15,6 +15,14 @@
 
 @end
 
+static CGFloat roundDownToMultiple(CGFloat x, CGFloat factor) {
+    return factor * floorf(x / factor);
+}
+
+static CGFloat roundUpToMultiple(CGFloat x, CGFloat factor) {
+    return factor * ceilf(x / factor);
+}
+
 static CGRect scaleRect(CGRect rect, CGFloat scale) {
     rect.origin.x *= scale;
     rect.origin.y *= scale;
@@ -23,34 +31,53 @@ static CGRect scaleRect(CGRect rect, CGFloat scale) {
     return rect;
 }
 
+static void dataProviderReleaseDataWithFree(void *info, void const *data, size_t size) {
+    free((void *)data);
+}
+
 static CGImageRef createImageInBitmapContextRect(CGContextRef gc, CGRect rect) {
-    uint8_t *data = CGBitmapContextGetData(gc);
-    size_t bytesPerRow = CGBitmapContextGetBytesPerRow(gc);
-    size_t bytesPerPixel = CGBitmapContextGetBitsPerPixel(gc) / 8;
-    data += (size_t)rect.origin.x * bytesPerPixel + (size_t)rect.origin.y * bytesPerRow;
-    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, data,
-        (size_t)rect.size.height * bytesPerRow, NULL);
-    CGImageRef image = CGImageCreate((size_t)rect.size.width, (size_t)rect.size.height,
+    // We can't just create a CGDataProvider that uses gc's bitmap data directly, because CGImage does not make a private copy of its data when you create it, or even when you draw it to a context!  Even though the Quartz 2D Programming Guide says a CGImage is immutable, I've found that changing the data that you originally passed to its CGDataProvider will change the contents of the image.  So I have to make a copy of the bitmap data here and use that copy to create the data provider.
+
+    size_t const sourceBytesPerRow = CGBitmapContextGetBytesPerRow(gc);
+    size_t const bytesPerPixel = CGBitmapContextGetBitsPerPixel(gc) / 8;
+    size_t const offset = (size_t)rect.origin.x * bytesPerPixel + (size_t)rect.origin.y * sourceBytesPerRow;
+    uint8_t const *const sourceData = (uint8_t const *)CGBitmapContextGetData(gc) + offset;
+
+    size_t const copiedBytesPerRow = bytesPerPixel * (size_t)rect.size.width;
+    size_t const copiedRowCount = (size_t)rect.size.height;
+    size_t const copiedBytesLength = copiedBytesPerRow * copiedRowCount;
+    uint8_t *const copiedData = malloc(copiedBytesLength);
+    for (size_t row = 0; row < copiedRowCount; ++row) {
+        memcpy(copiedData + row * copiedBytesPerRow, sourceData + row * sourceBytesPerRow, copiedBytesPerRow);
+    }
+
+    CGDataProviderRef const provider = CGDataProviderCreateWithData(NULL, copiedData, copiedBytesLength, &dataProviderReleaseDataWithFree);
+    CGImageRef const image = CGImageCreate((size_t)rect.size.width, (size_t)rect.size.height,
         CGBitmapContextGetBitsPerComponent(gc),
         CGBitmapContextGetBitsPerPixel(gc),
-        CGBitmapContextGetBytesPerRow(gc),
+        copiedBytesPerRow,
         CGBitmapContextGetColorSpace(gc),
         CGBitmapContextGetBitmapInfo(gc),
         provider, NULL, NO, kCGRenderingIntentDefault);
     CGDataProviderRelease(provider);
+
     return image;
 }
 
 static void copyImageToBitmapContextRect(CGImageRef image, CGContextRef gc, CGRect rect) {
+    // There are two ways to get access to an image's pixel data using public APIs.
+    // - You can use `CGImageGetDataProvider` and then `CGDataProviderCopyData`.  In my testing, this creates a new copy of the data every time.
+    // - You can draw the image into a bitmap context.
+    // I could get at the image's underlying data directly by storing a reference to the data in the cache, alongside the image (by using a custom wrapper object as the cache value).  Or I could attach the reference directly to the image using `objc_setAssociatedObject`.  For now, I'm just drawing the image into my existing bitmap context as that is easiest to implement.  Note that I need to unflip the CTM or the image will be drawn upside-down.
     CGContextSaveGState(gc); {
-        CGContextConcatCTM(gc, CGAffineTransformInvert(CGContextGetCTM(gc)));
-        CGContextDrawImage(gc, rect, image);
+        CGContextTranslateCTM(gc, rect.origin.x, rect.origin.y + rect.size.height);
+        CGContextScaleCTM(gc, 1, -1);
+        CGContextDrawImage(gc, CGRectMake(0, 0, rect.size.width, rect.size.height), image);
     } CGContextRestoreGState(gc);
 }
 
 static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
     CGContextSaveGState(gc); {
-        CGContextConcatCTM(gc, CGAffineTransformInvert(CGContextGetCTM(gc)));
         CGContextSetFillColorWithColor(gc, [UIColor whiteColor].CGColor);
         CGContextFillRect(gc, rect);
     } CGContextRestoreGState(gc);
@@ -165,14 +192,6 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
 
 #pragma mark - Implementation details
 
-static CGFloat roundDownToMultiple(CGFloat x, CGFloat factor) {
-    return factor * floorf(x / factor);
-}
-
-static CGFloat roundUpToMultiple(CGFloat x, CGFloat factor) {
-    return factor * ceilf(x / factor);
-}
-
 - (CGContextRef)context {
     if (!_context) {
         CGSize const size = self.size;
@@ -193,15 +212,15 @@ static CGFloat roundUpToMultiple(CGFloat x, CGFloat factor) {
 }
 
 - (void)didChangeContentsInRect:(CGRect)changedRect {
-    CGFloat const tileSize = self.tileSize;
-    CGFloat const xMin = roundDownToMultiple(CGRectGetMinX(changedRect), tileSize);
-    CGFloat const xMax = roundUpToMultiple(CGRectGetMaxX(changedRect), tileSize);
-    CGFloat const yMin = roundDownToMultiple(CGRectGetMinY(changedRect), tileSize);
-    CGFloat const yMax = roundUpToMultiple(CGRectGetMaxY(changedRect), tileSize);
+    CGFloat const tileSizeInUnits = self.tileSize / self.scale;
+    CGFloat const xMin = roundDownToMultiple(CGRectGetMinX(changedRect), tileSizeInUnits);
+    CGFloat const xMax = roundUpToMultiple(CGRectGetMaxX(changedRect), tileSizeInUnits);
+    CGFloat const yMin = roundDownToMultiple(CGRectGetMinY(changedRect), tileSizeInUnits);
+    CGFloat const yMax = roundUpToMultiple(CGRectGetMaxY(changedRect), tileSizeInUnits);
 
-    for (CGFloat y = yMin; y < yMax; y += tileSize) {
-        for (CGFloat x = xMin; x < xMax; x += tileSize) {
-            NSValue *frameValue = [NSValue valueWithCGRect:CGRectMake(x, y, tileSize, tileSize)];
+    for (CGFloat y = yMin; y < yMax; y += tileSizeInUnits) {
+        for (CGFloat x = xMin; x < xMax; x += tileSizeInUnits) {
+            NSValue *frameValue = [NSValue valueWithCGRect:CGRectMake(x, y, tileSizeInUnits, tileSizeInUnits)];
             [self didChangeTileWithFrameValue:frameValue];
         }
     }
@@ -234,12 +253,11 @@ static CGFloat roundUpToMultiple(CGFloat x, CGFloat factor) {
     if (currentContents == contents)
         return;
 
-    CGRect const scaledFrame = scaleRect(frameValue.CGRectValue, self.scale);
     if (contents) {
-        copyImageToBitmapContextRect(contents, _context, scaledFrame);
+        copyImageToBitmapContextRect(contents, _context, frameValue.CGRectValue);
         self.cachedTileContents[frameValue] = (__bridge id)(contents);
     } else {
-        fillBitmapContextRectWithWhite(_context, scaledFrame);
+        fillBitmapContextRectWithWhite(_context, frameValue.CGRectValue);
         [self.cachedTileContents removeObjectForKey:frameValue];
     }
     [_observers.proxy canvas:self didChangeTileWithFrameValue:frameValue];
