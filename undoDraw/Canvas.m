@@ -200,7 +200,7 @@ static void fillBitmapContextRectWithWhite(CGContextRef gc, CGRect rect) {
         size_t const width = (size_t)roundUpToMultiple(size.width * scale, tileSize);
         size_t const height = (size_t)roundUpToMultiple(size.height * scale, tileSize);
         CGColorSpaceRef const rgb = CGColorSpaceCreateDeviceRGB();
-        _context = CGBitmapContextCreate(NULL, width, height, 8, 4 * width, rgb, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+        _context = CGBitmapContextCreate(NULL, width, height, 8, 4 * width, rgb, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Host);
         CGColorSpaceRelease(rgb);
         CGContextSetFillColorWithColor(_context, [UIColor whiteColor].CGColor);
         CGContextFillRect(_context, CGRectInfinite);
