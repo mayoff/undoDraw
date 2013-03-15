@@ -72,6 +72,7 @@ static void copyImageToBitmapContextRect(CGImageRef image, CGContextRef gc, CGRe
     // - You can draw the image into a bitmap context.
     // I could get at the image's underlying data directly by storing a reference to the data in the cache, alongside the image (by using a custom wrapper object as the cache value).  Or I could attach the reference directly to the image using `objc_setAssociatedObject`.  For now, I'm just drawing the image into my existing bitmap context as that is easiest to implement.  Note that I need to unflip the CTM or the image will be drawn upside-down.
     CGContextSaveGState(gc); {
+        CGContextSetBlendMode(gc, kCGBlendModeCopy);
         CGContextTranslateCTM(gc, rect.origin.x, rect.origin.y + rect.size.height);
         CGContextScaleCTM(gc, 1, -1);
         CGContextDrawImage(gc, CGRectMake(0, 0, rect.size.width, rect.size.height), image);
